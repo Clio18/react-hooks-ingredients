@@ -14,16 +14,14 @@ const Ingredients = () => {
     fetch(
       "https://update-react-ingredients-default-rtdb.firebaseio.com/ingredients.json"
     )
-      .then((response) => {
-        response.json();
-      })
+      .then((response) => response.json())
       .then((responseData) => {
-        loadedIngredients = [];
+        const loadedIngredients = [];
         for (const key in responseData) {
           loadedIngredients.push({
             id: key,
-            title: response[key].title,
-            amount: response[key].amount,
+            title: responseData[key].title,
+            amount: responseData[key].amount,
           });
         }
         setUserIngredients(loadedIngredients);
