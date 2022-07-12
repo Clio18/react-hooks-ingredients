@@ -7,8 +7,12 @@ const IngredientForm = React.memo((props) => {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
 
+  // 5. when user press submit button we retreive the data to create new ingredient and
+  // call the function which we receive from props to add this ingredient to the list
+
   const submitHandler = (event) => {
     event.preventDefault();
+
     props.onAddIngredient({
       title: title,
       amount: amount,
