@@ -49,6 +49,7 @@ const Ingredients = () => {
         );
       })
       .catch((error) => {
+        isLoading(false);
         setError("Something goes wrong!");
       });
   };
@@ -64,7 +65,6 @@ const Ingredients = () => {
 
   const clearError = () => {
     setError(null);
-    isLoading(false);
   };
 
   return (
