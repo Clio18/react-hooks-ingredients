@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientList from "./IngredientList";
@@ -6,6 +6,29 @@ import Search from "./Search";
 
 const Ingredients = () => {
   const [userIngredients, setUserIngredients] = useState([]);
+
+  // useEffect will be called AFTER component render and for every render cycle, but when we add [...]
+  // it will listen to the changes on it array. Without this [] it will be infinite loop. If we add empty []
+  // the useEffect will play like afterDidMount - it will called only once
+  useEffect(() => {
+    fetch(
+      "https://update-react-ingredients-default-rtdb.firebaseio.com/ingredients.json"
+    )
+      .then((response) => {
+        response.json();
+      })
+      .then((responseData) => {
+        loadedIngredients = [];
+        for (const key in responseData) {
+          loadedIngredients.push({
+            id: key,
+            title: response[key].title,
+            amount: response[key].amount,
+          });
+        }
+        setUserIngredients(loadedIngredients);
+      });
+  }, []);
 
   const addIngredientHandler = (ingredient) => {
     fetch(
