@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientList from "./IngredientList";
@@ -7,9 +7,6 @@ import Search from "./Search";
 const Ingredients = () => {
   const [userIngredients, setUserIngredients] = useState([]);
 
-  // useEffect will be called AFTER component render and for every render cycle, but when we add [...]
-  // it will listen to the changes on it array. Without this [] it will be infinite loop. If we add empty []
-  // the useEffect will play like afterDidMount - it will called only once
   useEffect(() => {
     fetch(
       "https://update-react-ingredients-default-rtdb.firebaseio.com/ingredients.json"
@@ -56,11 +53,20 @@ const Ingredients = () => {
     );
   };
 
+  // 2. all time when state changed (when ingredients are changed) this function will be re-render
+  // or cretaed, thats why to avoid infinite loop we should use callback to cash this function
+  const filterIngredientsHandler = useCallback(
+    (filterIngredients) => {
+      setUserIngredients(filterIngredients);
+    },
+    [setUserIngredients]
+  );
+
   return (
     <div className="App">
       <IngredientForm onAddIngredient={addIngredientHandler} />
       <section>
-        <Search />
+        <Search onLoadedIngredients={filterIngredientsHandler} />
         <IngredientList
           ingredients={userIngredients}
           onRemoveItem={removeIngredientHandler}
