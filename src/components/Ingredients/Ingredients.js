@@ -6,8 +6,10 @@ import Search from "./Search";
 
 const Ingredients = () => {
   const [userIngredients, setUserIngredients] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const addIngredientHandler = (ingredient) => {
+    setIsLoading(true);
     fetch(
       "https://update-react-ingredients-default-rtdb.firebaseio.com/ingredients.json",
       {
@@ -19,6 +21,7 @@ const Ingredients = () => {
       }
     )
       .then((response) => {
+        setIsLoading(false);
         return response.json();
       })
       .then((responseData) => {
@@ -30,12 +33,14 @@ const Ingredients = () => {
   };
 
   const removeIngredientHandler = (ingredientId) => {
+    setIsLoading(true);
     fetch(
       `https://update-react-ingredients-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,
       {
         method: "DELETE",
       }
     ).then((response) => {
+      setIsLoading(false);
       setUserIngredients((prevIngredients) =>
         prevIngredients.filter((ingredient) => ingredient.id !== ingredientId)
       );
@@ -53,7 +58,10 @@ const Ingredients = () => {
 
   return (
     <div className="App">
-      <IngredientForm onAddIngredient={addIngredientHandler} />
+      <IngredientForm
+        onAddIngredient={addIngredientHandler}
+        loading={isLoading}
+      />
       <section>
         <Search onLoadedIngredients={filterIngredientsHandler} />
         <IngredientList
