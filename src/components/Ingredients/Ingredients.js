@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useReducer } from "react";
+import React, { useCallback, useReducer } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientList from "./IngredientList";
@@ -18,14 +18,30 @@ const ingredientsReducer = (currentIngredients, action) => {
   }
 };
 
+const httpReducer = (currentHttpState, action) => {
+  switch (action.type) {
+    case "SEND":
+      return { loading: true, error: null };
+    case "RESPONSE":
+      return { ...currentHttpState, loading: false };
+    case "ERROR":
+      return { loading: false, error: action.errorMessage };
+    case "CLEAR":
+      return { ...currentHttpState, error: null };
+    default:
+      throw new Error("Somthing goes wrong!");
+  }
+};
+
 const Ingredients = () => {
   const [userIngredients, dispatch] = useReducer(ingredientsReducer, []);
-  //const [userIngredients, setUserIngredients] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState();
+  const [httpState, dispatchHttp] = useReducer(httpReducer, {
+    loading: false,
+    error: null,
+  });
 
   const addIngredientHandler = (ingredient) => {
-    setIsLoading(true);
+    dispatchHttp({ type: "SEND" });
     fetch(
       "https://update-react-ingredients-default-rtdb.firebaseio.com/ingredients.json",
       {
@@ -37,7 +53,7 @@ const Ingredients = () => {
       }
     )
       .then((response) => {
-        setIsLoading(false);
+        dispatchHttp({ type: "RESPONSE" });
         return response.json();
       })
       .then((responseData) => {
@@ -49,7 +65,7 @@ const Ingredients = () => {
   };
 
   const removeIngredientHandler = (ingredientId) => {
-    setIsLoading(true);
+    dispatchHttp({ type: "SEND" });
     fetch(
       `https://update-react-ingredients-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,
       {
@@ -57,20 +73,17 @@ const Ingredients = () => {
       }
     )
       .then((response) => {
-        setIsLoading(false);
+        dispatchHttp({ type: "RESPONSE" });
         dispatch({
           type: "DELETE",
           id: ingredientId,
         });
       })
       .catch((error) => {
-        isLoading(false);
-        setError("Something goes wrong!");
+        dispatchHttp({ type: "ERROR", errorMessage: "Something goes wrong!" });
       });
   };
 
-  // 2. all time when state changed (when ingredients are changed) this function will be re-render
-  // or cretaed, thats why to avoid infinite loop we should use callback to cash this function
   const filterIngredientsHandler = useCallback((filterIngredients) => {
     dispatch({
       type: "SET",
@@ -79,15 +92,17 @@ const Ingredients = () => {
   }, []);
 
   const clearError = () => {
-    setError(null);
+    dispatchHttp({ type: "CLEAR" });
   };
 
   return (
     <div className="App">
-      {error ? <ErrorModal onClose={clearError}>{error}</ErrorModal> : null}
+      {httpState.error ? (
+        <ErrorModal onClose={clearError}>{httpState.error}</ErrorModal>
+      ) : null}
       <IngredientForm
         onAddIngredient={addIngredientHandler}
-        loading={isLoading}
+        loading={httpState.loading}
       />
       <section>
         <Search onLoadedIngredients={filterIngredientsHandler} />
