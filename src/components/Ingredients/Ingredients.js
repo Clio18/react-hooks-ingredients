@@ -1,12 +1,26 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useReducer } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientList from "./IngredientList";
 import Search from "./Search";
 import ErrorModal from "../UI/ErrorModal";
 
+const ingredientsReducer = (currentIngredients, action) => {
+  switch (action.type) {
+    case "SET":
+      return action.ingredients;
+    case "ADD":
+      return [...currentIngredients, action.ingredient];
+    case "DELETE":
+      return currentIngredients.filter((ing) => ing.id !== action.id);
+    default:
+      throw new Error("Somthing goes wrong!");
+  }
+};
+
 const Ingredients = () => {
-  const [userIngredients, setUserIngredients] = useState([]);
+  const [userIngredients, dispatch] = useReducer(ingredientsReducer, []);
+  //const [userIngredients, setUserIngredients] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
 
@@ -27,10 +41,10 @@ const Ingredients = () => {
         return response.json();
       })
       .then((responseData) => {
-        setUserIngredients((prevIngredient) => [
-          ...prevIngredient,
-          { id: responseData.name, ...ingredient },
-        ]);
+        dispatch({
+          type: "ADD",
+          ingredient: ingredient,
+        });
       });
   };
 
@@ -44,9 +58,10 @@ const Ingredients = () => {
     )
       .then((response) => {
         setIsLoading(false);
-        setUserIngredients((prevIngredients) =>
-          prevIngredients.filter((ingredient) => ingredient.id !== ingredientId)
-        );
+        dispatch({
+          type: "DELETE",
+          id: ingredientId,
+        });
       })
       .catch((error) => {
         isLoading(false);
@@ -56,12 +71,12 @@ const Ingredients = () => {
 
   // 2. all time when state changed (when ingredients are changed) this function will be re-render
   // or cretaed, thats why to avoid infinite loop we should use callback to cash this function
-  const filterIngredientsHandler = useCallback(
-    (filterIngredients) => {
-      setUserIngredients(filterIngredients);
-    },
-    [setUserIngredients]
-  );
+  const filterIngredientsHandler = useCallback((filterIngredients) => {
+    dispatch({
+      type: "SET",
+      ingredients: filterIngredients,
+    });
+  }, []);
 
   const clearError = () => {
     setError(null);
